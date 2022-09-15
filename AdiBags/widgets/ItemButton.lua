@@ -102,14 +102,6 @@ function buttonProto:OnCreate()
 		self:StyleButton(1)
 	end
 	self:SetNormalTexture(nil)
-	if not self.ScrapIcon then
-		local scrapIcon = self:CreateTexture(nil, "OVERLAY")
-		scrapIcon:SetAtlas("bags-icon-scrappable")
-		scrapIcon:Size(14, 12)
-		scrapIcon:SetPoint("TOPRIGHT", -2, -2)
-		scrapIcon:Hide()
-		self.ScrapIcon = scrapIcon
-	end
 
 	if self.NewItemTexture then
 		self.NewItemTexture:Hide()
@@ -329,22 +321,15 @@ function buttonProto:Update()
 	local icon = self.IconTexture
 	if self.texture then
 		icon:SetTexture(self.texture)
-		if ElvUI then
-			icon:SetTexCoord(unpack(ElvUI[1].TexCoords))
-			icon:SetInside()
-		elseif KlixUI then
-			icon:SetTexCoord(unpack(KlixUI[1].TexCoords))
-			icon:SetInside(nil, 1, 1)
-		end
 	else
 		icon:SetTexture()
-		if ElvUI then
-			icon:SetTexCoord(unpack(ElvUI[1].TexCoords))
-			icon:SetInside()
-		elseif KlixUI then
-			icon:SetTexCoord(unpack(KlixUI[1].TexCoords))
-			icon:SetInside(nil, 1, 1)
-		end
+	end
+	if ElvUI then
+		icon:SetTexCoord(unpack(ElvUI[1].TexCoords))
+		icon:SetInside()
+	elseif KlixUI then
+		icon:SetTexCoord(unpack(KlixUI[1].TexCoords))
+		icon:SetInside(nil, 1, 1)
 	end
 	local tag = (not self.itemId or addon.db.profile.showBagType) and addon:GetFamilyTag(self.bagFamily)
 	if tag then
@@ -421,7 +406,7 @@ if addon.isRetail then
 end
 
 local function GetBorder(bag, slot, itemId, settings)
-	if addon.isRetail then
+	if addon.isRetail or addon.isWrath then
 		if settings.questIndicator then
 			local isQuestItem, questId, isActive = GetContainerItemQuestInfo(bag, slot)
 			if questId and not isActive then
@@ -452,22 +437,58 @@ function buttonProto:UpdateBorder(isolatedEvent)
 	elseif KlixUI then
 		self:SetBackdropBorderColor(unpack(KlixUI[1].media.bordercolor))
 	end
-	local texture, r, g, b, a, blendMode
+	local texture, r, g, b, a, x1, x2, y1, y2, blendMode
 	if self.hasItem then
 		texture, r, g, b, a, x1, x2, y1, y2, blendMode = GetBorder(self.bag, self.slot, self.itemLink or self.itemId, addon.db.profile)
 	end
-	local border = self.IconQuestTexture
-	if not texture and texture ~= nil then
+	if not texture then
 		self.IconQuestTexture:Hide()
+	elseif not texture and texture ~= nil then
 		border:Hide()
-	else		
+	else
+		local border = self.IconQuestTexture
 		if texture == true then
-			border:SetColorTexture(r, g, b, a)
+			if ElvUI or KlixUI then
+				border:SetColorTexture(r or 1, g or 1, b or 1, a or 1)
+			else
+				border:SetVertexColor(1, 1, 1, 1)
+				border:SetColorTexture(r or 1, g or 1, b or 1, a or 1)
+			end
 		else
-			border:SetTexture()
-			self:SetBackdropBorderColor(r, g, b, a)
+			if ElvUI or KlixUI then
+				if IsAddOnLoaded("AddOnSkins") then
+					border:SetTexture()
+					self:SetBackdropBorderColor(r, g, b, a)
+				else
+					self.borders = {}
+					local E, _, V, P, G = unpack(ElvUI)
+
+					for i=1, 4 do
+						self.borders[i] = self:CreateLine(nil, "BACKGROUND", nil, 0)
+						local l = self.borders[i]
+						l:SetThickness(E.global.general.UIScale)
+						l:SetColorTexture(r or 0, g or 0, b or 0, a or 1)
+						if i==1 then
+							l:SetStartPoint("TOPLEFT")
+							l:SetEndPoint("TOPRIGHT")
+						elseif i==2 then
+							l:SetStartPoint("TOPRIGHT")
+							l:SetEndPoint("BOTTOMRIGHT")
+						elseif i==3 then
+							l:SetStartPoint("BOTTOMRIGHT")
+							l:SetEndPoint("BOTTOMLEFT")
+						else
+							l:SetStartPoint("BOTTOMLEFT")
+							l:SetEndPoint("TOPLEFT")
+						end
+					end
+				end
+			else
+				border:SetTexture(texture)
+				border:SetVertexColor(r or 1, g or 1, b or 1, a or 1)
+			end				
 		end
-		border:SetTexCoord(0, 1, 0, 1)
+		border:SetTexCoord(x1 or 0, x2 or 1, y1 or 0, y2 or 1)
 		border:SetInside()
 		border:SetBlendMode(blendMode or "BLEND")
 		border:Show()

@@ -129,7 +129,7 @@ function containerProto:OnCreate(name, isBank, bagObject)
 		self.content[bagId] = { size = 0 }
 		tinsert(bagSlots, bagId)
 		if not addon.itemParentFrames[bagId] then
-			local f = CreateFrame("Frame", addonName..'ItemContainer'..bagId, self)
+			local f = CreateFrame("Frame", addonName..'ItemContainer'..bagId, self, BackdropTemplateMixin and "BackdropTemplate")
 			f.isBank = isBank
 			f:SetID(bagId)
 			addon.itemParentFrames[bagId] = f
