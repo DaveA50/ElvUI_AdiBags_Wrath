@@ -48,6 +48,32 @@ local wipe = _G.wipe
 
 local UpdateTable = addon.UpdateTable
 
+-- Handles differences between the retail and wrath currency apis
+-- There's probably a better way to handle this. I couldn't come up with anything else, so I'm open to suggestions.
+local function GetCurrencyListInfoAgnostic(index)
+	if addon.isRetail then
+		return GetCurrencyListInfoRetail(index)
+	elseif addon.isWrath then
+		return GetCurrencyListInfo(index)
+	end
+end
+
+local function GetCurrencyInfoAgnostic(currencyType)
+	if addon.isRetail then
+		return GetCurrencyInfoRetail(currencyType)
+	elseif addon.isWrath then
+		return GetCurrencyInfo(currencyType)
+	end
+end
+
+local function GetCurrencyListSizeAgnostic()
+	if addon.isRetail then
+		return GetCurrencyListSizeRetail()
+	elseif addon.isWrath then
+		return GetCurrencyListSize()
+	end
+end
+
 local mod = addon:NewModule('CurrencyFrame', 'ABEvent-1.0')
 mod.uiName = L['Currency']
 mod.uiDesc = L['Display character currency at bottom left of the backpack.']
@@ -152,32 +178,6 @@ function mod:OnBagFrameCreated(bag)
 	end
 	self:Update()
 	frame:AddBottomWidget(widget, "LEFT", 50)
-end
-
--- Handles differences between the retail and wrath currency apis
--- There's probably a better way to handle this. I couldn't come up with anything else, so I'm open to suggestions.
-local function GetCurrencyListInfoAgnostic(index)
-	if addon.isRetail then
-		return GetCurrencyListInfoRetail(index)
-	elseif addon.isWrath then
-		return GetCurrencyListInfo(index)
-	end
-end
-
-local function GetCurrencyInfoAgnostic(currencyType)
-	if addon.isRetail then
-		return GetCurrencyInfoRetail(currencyType)
-	elseif addon.isWrath then
-		return GetCurrencyInfo(currencyType)
-	end
-end
-
-local function GetCurrencyListSizeAgnostic()
-	if addon.isRetail then
-		return GetCurrencyListSizeRetail()
-	elseif addon.isWrath then
-		return GetCurrencyListSize()
-	end
 end
 
 local IterateCurrencies
